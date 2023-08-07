@@ -28,18 +28,18 @@ async def GeoCodeLocation(access_token: str, address: str, country: str):
     async with aiohttp.ClientSession() as session: 
         async with session.get(url, headers=headers) as response: 
             data = await response.json()
+            if response.status != 200:
+                print(f"Error with status code: {response.status}, response: {data}")
+                return ""
 
+    results = data.get("results", [])
+
+    if not results or "coordinate" not in results[0]:
+        return ""
+    
     # Extract coordinates 
-    coordinates = "0.0,0.0"
-
-    if data["results"][0]["coordinate"]:
-        latitude = data["results"][0]["coordinate"]["latitude"]
-        longitude = data["results"][0]["coordinate"]["longitude"]
-
-        # Format into a string
-        coordinates = f"{latitude},{longitude}"
-
-    return coordinates
+    coordinate = results[0]["coordinate"]
+    return f"{coordinate['latitude']},{coordinate['longitude']}"
 
 # Get distance estimate using Maps Server API's etas endpoint 
 async def GetEta(access_token: str, origin_coordinate: str, destination_coordinate: str): 
@@ -56,13 +56,16 @@ async def GetEta(access_token: str, origin_coordinate: str, destination_coordina
     async with aiohttp.ClientSession() as session: 
         async with session.get(url, headers=headers) as response: 
             data = await response.json()
+            if response.status != 200:
+                print(f"Error with status code: {response.status}, response: {data}")
+                return ""
     
     # Gather ETA 
-    distance_meters = 0
-    travel_seconds = 0
+    results = data.get("etas", [])
+    if not results: 
+        return ""
 
-    if data["etas"][0]:
-        distance_meters = data["etas"][0]["distanceMeters"]
-        travel_seconds = data["etas"][0]["expectedTravelTimeSeconds"]
+    distance_meters = results[0]["distanceMeters"]
+    travel_seconds = results[0]["expectedTravelTimeSeconds"]
 
     return distance_meters, travel_seconds

@@ -16,4 +16,3 @@ async def ChatComplDefault(START: str, COUNTRY: str, MODEL: str = "gpt-4", TEMP:
         temperature = TEMP
     )
     return response["choices"][0]["message"]["content"]
-

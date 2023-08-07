@@ -39,11 +39,15 @@ async def main():
     destinations = list()
 
     for i in range(len(location_geocodes) - 1): 
-        origins.append(location_geocodes[i])
-        destinations.append(location_geocodes[i+1])
+        if len(location_geocodes[i]) != 0 and len(location_geocodes[i+1]) != 0:
+            origins.append(location_geocodes[i])
+            destinations.append(location_geocodes[i+1])
 
-    tasks_eta = [GetEta(access_token, origin, destination) for origin, destination in zip(origins,destinations)]
-    itinerary = await asyncio.gather(*tasks_eta)
+    if len(origins) != 0 and len(destinations) !=0:
+        tasks_eta = [GetEta(access_token, origin, destination) for origin, destination in zip(origins,destinations)]
+        itinerary = await asyncio.gather(*tasks_eta)
+    else: 
+        itinerary = "Couldn't calculate travel times, try again later!"
 
     # Show the final itinerary
     print(locations)
