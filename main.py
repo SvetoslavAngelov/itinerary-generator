@@ -30,24 +30,18 @@ async def main():
     # Obtain a temporary Apple Maps API access token
     access_token = await GetAccessToken(maps_jwt)
 
-    # Obtain the geocoordinates of each location
-    tasks_geocode = [GeoCodeLocation(access_token, location, country) for location in locations]
-    location_geocodes = await asyncio.gather(*tasks_geocode)
+    itinerary = list()
 
-    # Estimate the distance and ETA between each location 
-    origins = list()
-    destinations = list()
+    for i in range(len(locations)-1):
+        # Obtain the geo code of each location pair
+        origin = locations[i]
+        origin_geocode = await GeoCodeLocation(access_token, origin, country)
+        destination = locations[i+1]
+        destination_geocode = await GeoCodeLocation(access_token, destination, country)
 
-    for i in range(len(location_geocodes) - 1): 
-        if len(location_geocodes[i]) != 0 and len(location_geocodes[i+1]) != 0:
-            origins.append(location_geocodes[i])
-            destinations.append(location_geocodes[i+1])
-
-    if len(origins) != 0 and len(destinations) !=0:
-        tasks_eta = [GetEta(access_token, origin, destination) for origin, destination in zip(origins,destinations)]
-        itinerary = await asyncio.gather(*tasks_eta)
-    else: 
-        itinerary = "Couldn't calculate travel times, try again later!"
+        # Calculate ETA between the origin and destination
+        distance_km, travel_minutes = await GetEta(access_token, origin_geocode, destination_geocode)
+        itinerary.append(f"Travel time between {origin} and {destination} is {distance_km:.2f} kilometers and {travel_minutes:.0f} minutes")
 
     # Show the final itinerary
     print(locations)

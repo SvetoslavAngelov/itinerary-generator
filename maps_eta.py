@@ -65,7 +65,7 @@ async def GetEta(access_token: str, origin_coordinate: str, destination_coordina
     if not results: 
         return ""
 
-    distance_meters = results[0]["distanceMeters"]
-    travel_seconds = results[0]["expectedTravelTimeSeconds"]
+    distance_km = results[0]["distanceMeters"] / 1000
+    travel_minutes = results[0]["expectedTravelTimeSeconds"] / 60
 
-    return distance_meters, travel_seconds
+    return distance_km, travel_minutes
